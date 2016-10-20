@@ -18,8 +18,8 @@ public class LearnWeatherOpenHelper extends SQLiteOpenHelper {
             "city_name text," +
             "city_code text," +
             "province_id integer)";
-    public static final String CREATE_COUNTY="create table county"+
-            "(id integer primary key autocrement," +
+    public static final String CREATE_COUNTY="create table County"+
+            "(id integer primary key autoincrement," +
             "county_name text," +
             "county_code text," +
             "city_id integer)";
