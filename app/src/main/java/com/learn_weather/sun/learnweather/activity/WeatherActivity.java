@@ -14,6 +14,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.learn_weather.sun.learnweather.R;
+import com.learn_weather.sun.learnweather.service.AutoUpdateService;
 import com.learn_weather.sun.learnweather.util.HttpCallbackListener;
 import com.learn_weather.sun.learnweather.util.HttpUtil;
 import com.learn_weather.sun.learnweather.util.Utility;
@@ -61,7 +62,7 @@ public class WeatherActivity extends Activity {
 
             publishText.setText("同步中……");
             weatherInfoLayout.setVisibility(View.INVISIBLE);
-//            cityNameText.setVisibility(View.INVISIBLE);
+            cityNameText.setVisibility(View.INVISIBLE);
             queryWetherCode(countyCode);
         } else {
             showWeather();
@@ -190,6 +191,9 @@ public class WeatherActivity extends Activity {
         currentDateText.setText(currentDate);
         cityNameText.setText(cityName);
         weatherInfoLayout.setVisibility(View.VISIBLE);
+        cityNameText.setVisibility(View.VISIBLE);
+        Intent intent=new Intent(this, AutoUpdateService.class);
+        startService(intent);
 
     }
 
