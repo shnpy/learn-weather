@@ -2,8 +2,12 @@ package com.learn_weather.sun.learnweather.activity;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.AdapterView;
@@ -29,6 +33,9 @@ import java.util.List;
  */
 
 public class ChooseAreaActivity extends Activity {
+     private static final String TAG="TT";
+    private final String localTag=getClass().getSimpleName() + "__";
+
     public static final int LEVEL_PROVINCE=0;
     public static final int LEVEL_CITY=1;
     public static final int LEVEL_COUNTY=2;
@@ -51,26 +58,56 @@ public class ChooseAreaActivity extends Activity {
 
     private int currentLevel;
 
+    private  boolean isFromWeatherActivity;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        isFromWeatherActivity=getIntent().getBooleanExtra("from_weather_activity",
+                false);
+
+        SharedPreferences prefs=PreferenceManager.getDefaultSharedPreferences
+                (this);
+        if (prefs.getBoolean("city_selected", false)&&!isFromWeatherActivity) {
+            Intent intent=new Intent(this, WeatherActivity.class);
+            startActivity(intent);
+            finish();
+            return;
+        }
+
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.choose_area);
         listView=(ListView) findViewById(R.id.list_view);
         titleText=(TextView) findViewById(R.id.title_text);
-        adapter=new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, dataList);
+        adapter=new ArrayAdapter<String>(this, android.R.layout
+                .simple_list_item_1, dataList);
         listView.setAdapter(adapter);
         learnWeatherDB=LearnWeatherDB.getInstance(this);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            public void onItemClick(AdapterView<?> parent, View view, int
+                    position, long id) {
 
                 if (currentLevel == LEVEL_PROVINCE) {
                     selectedProvince=provinceList.get(position);
+                    Log.d(TAG, localTag + "onItemClick: current " +
+                            "province: "+selectedProvince
+                            .getProvinceName());
                     queryCities();
                 } else if (currentLevel == LEVEL_CITY) {
                     selectedCity=cityList.get(position);
+                    Log.d(TAG, localTag + "current city: "+selectedCity.getCityName());
                     queryCounties();
+                } else if (currentLevel == LEVEL_COUNTY) {
+                    String countyCode=countyList.get(position).getCountyCode();
+                    Log.d(TAG, localTag + "current county: "+countyList.get
+                            (position).getCountyName());
+                    Intent intent=new Intent(ChooseAreaActivity.this,
+                            WeatherActivity.class);
+                    intent.putExtra("county_code", countyCode);
+                    startActivity(intent);
+                    finish();
                 }
 
             }
@@ -112,9 +149,11 @@ public class ChooseAreaActivity extends Activity {
                             response);
 
                 } else if ("city".equals(type)) {
-                    result=Utility.handleCityResponse(learnWeatherDB, response, selectedProvince.getId());
+                    result=Utility.handleCityResponse(learnWeatherDB,
+                            response, selectedProvince.getId());
                 } else if ("county".equals(type)) {
-                    result=Utility.handleCountiesResponse(learnWeatherDB, response, selectedCity.getId());
+                    result=Utility.handleCountiesResponse(learnWeatherDB,
+                            response, selectedCity.getId());
                 }
                 if (result) {
                     runOnUiThread(new Runnable() {
@@ -140,7 +179,8 @@ public class ChooseAreaActivity extends Activity {
                     @Override
                     public void run() {
                         closeProgressDialog();
-                        Toast.makeText(ChooseAreaActivity.this, "加载失败", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ChooseAreaActivity.this, "加载失败", Toast
+                                .LENGTH_SHORT).show();
 
                     }
                 });
